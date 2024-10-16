@@ -1,0 +1,9 @@
+[package]
+name = "wapiti"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ratatui = { version = "0.27.0", features = ["all-widgets"] }
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
