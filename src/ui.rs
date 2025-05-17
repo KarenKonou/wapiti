@@ -60,12 +60,34 @@ pub fn ui(f: &mut Frame, app: &mut App) {
 
     f.render_widget(list, horizontal_chunks[0]);
 
-    let main = Block::default()
+
+    // MAIN
+    let main_block = Block::default()
         .border_style(Style::default().fg(PINK))
         .border_type(BorderType::Rounded)
         .borders(Borders::ALL);
 
+    let text = if app.instance_url == ""
+        {
+            Paragraph::new("No instance set").centered().fg(PINK)
+        } else if app.current_screen != CurrentScreen::Login {
+            Paragraph::new("Loading...").centered().fg(PINK)
+        } else {
+            Paragraph::new("No instance set").centered().fg(PINK)
+        };
+
+    let main = text
+        .scroll((app.vertical_scroll as u16, 0))
+        .block(main_block);
+
+    let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+        .begin_symbol(Some("↑"))
+        .end_symbol(Some("↓"));
+
+    let mut scrollbar_state = ScrollbarState::new(app.posts.len()).position(app.vertical_scroll);
+
     f.render_widget(main, horizontal_chunks[1]);
+    f.render_stateful_widget(scrollbar, horizontal_chunks[1].inner(Margin {vertical: 1, horizontal: 1}), &mut scrollbar_state);
 
     //LOGIN POPUP
     if let CurrentScreen::Login = &app.current_screen {

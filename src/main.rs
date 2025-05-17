@@ -15,7 +15,8 @@ use std::{error::Error, io};
 use app::{App, CurrentScreen};
 use ui::ui;
 
-fn main() -> Result<(), Box<dyn Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     enable_raw_mode()?;
     let mut stderr = io::stderr();
     execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
@@ -23,8 +24,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     let client = Client::new();
-    let mut app = App::new();
-    let res = run_app(&mut terminal, &mut app);
+    let mut app = App::new(client);
+    let res = run_app(&mut terminal, &mut app).await;
 
     disable_raw_mode()?;
     execute!(
@@ -37,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<()> {
+async fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<()> {
     loop {
         terminal.draw(|f| ui(f, app))?;
 
@@ -60,6 +61,7 @@ fn run_app<B: Backend>(terminal: &mut Terminal<B>, app: &mut App) -> io::Result<
                 CurrentScreen::Login if key.kind == event::KeyEventKind::Press => match key.code {
                     KeyCode::Enter => {
                         app.current_screen = CurrentScreen::Main;
+                        app.get_public_timeline().await;
                     }
 
                     KeyCode::Backspace => {
